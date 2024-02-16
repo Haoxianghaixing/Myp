@@ -11,6 +11,7 @@ EXPOSE 3000
 
 FROM base AS runner
 
+RUN npm install -g pnpm
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN \
   [ -f pnpm-lock.yaml ] && pnpm install --ignore-scripts || \
