@@ -28,4 +28,4 @@ jobs:
             cd /projectTest/Myp
             docker stop Myp
             docker rm Myp
-            docker run -d -p 1224:1224 --name Myp next-new
+            docker run -d -p 3000:3000 --name Myp next-new
