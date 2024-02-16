@@ -1,0 +1,28 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: copy to aliyun
+        uses: easingthemes/ssh-deploy@v2.1.5
+        env:
+          #私钥
+          SSH_PRIVATE_KEY: ${{ secrets.Aliyun }}
+          #SCp参数
+          ARGS: '-rltgoDzvO --delete'
+          #源目录
+          SOURCE: './'
+          #服务器Ip:换成你的服务器iP
+          REMOTE_HOST: 101.200.238.139
+          #用户
+          REMOTE_USER: 'root'
+          #目标地址
+          TARGET: '/projectTest/Myp'
