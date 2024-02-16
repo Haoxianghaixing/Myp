@@ -4,13 +4,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { IArea, IMapJson } from '@/types/map'
 import Toolbox, { IToolboxItem } from '@/components/common/toolbox'
 import * as PIXI from 'pixi.js'
-import { getMapDataById, getMapParams } from '@/utils'
+import { getMapParams } from '@/utils'
 import gsap from 'gsap'
 import useFleetingMessage from '@/hooks/useFleetingMessage'
 import AreaDetail from '@/components/map/AreaDetail'
 import MapCanvas from '@/components/map/MapCanvas'
 import Record from '@/components/map/Record'
 import { useRouter } from 'next/navigation'
+import { getMapGeoDataById } from '@/api/map'
 
 const MAX_WIDTH = 1000
 const MAX_HEIGHT = 600
@@ -73,11 +74,27 @@ export default function Page({ params }: { params: { id: string } }) {
           )
         })
         p.endFill()
+
+        const text = new PIXI.Text(area.properties.name, {
+          fontSize: 14,
+          fill: 0x000000,
+        })
+        text.position.x =
+          ((area.properties.cp[0] - mapCorner.longitude) / mapWidth) *
+          stageWidth
+        text.position.y =
+          stageHeight -
+          ((area.properties.cp[1] - mapCorner.latitude) / mapHeight) *
+            stageHeight
+        text.anchor.set(0.5)
+
         p.on('pointerenter', () => {
           p.tint = 0xdbe2ef
+          g.addChild(text)
         })
         p.on('pointerout', () => {
           p.tint = 0xffffff
+          g.removeChild(text)
         })
 
         let lastClickTime = 0
@@ -162,9 +179,12 @@ export default function Page({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     setIsLoaded(false)
-    getMapDataById(areaId).then((res) => {
-      mapJsonRef.current = res.features
-      const newMapParams = getMapParams(res.features)
+
+    getMapGeoDataById(areaId).then((res) => {
+      const body = res.data
+      const data = JSON.parse(body.data)
+      mapJsonRef.current = data.features
+      const newMapParams = getMapParams(data.features)
       setMapParams(newMapParams)
 
       const scale = newMapParams.width / newMapParams.height
@@ -180,7 +200,7 @@ export default function Page({ params }: { params: { id: string } }) {
         })
       }
 
-      showMessage(areaId)
+      showMessage(body.areaName)
 
       setIsLoaded(true)
     })

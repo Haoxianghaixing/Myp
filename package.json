@@ -12,6 +12,7 @@
     "@ant-design/nextjs-registry": "^1.0.0",
     "@pixi/react": "^7.1.1",
     "antd": "^5.14.0",
+    "axios": "^1.6.7",
     "clsx": "^2.1.0",
     "gsap": "^3.12.5",
     "next": "14.1.0",
