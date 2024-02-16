@@ -24,3 +24,8 @@ jobs:
           # 将工作目录下的文件全部拷贝到部署服务器的工作目录
           scp: |
             ./* => /projectTest/Myp
+          last_ssh: |
+            cd /projectTest/Myp
+            docker stop Myp
+            docker rm Myp
+            docker run -d -p 1224:1224 --name Myp next-new
