@@ -1,7 +1,7 @@
-import Img1 from './img/1.jpg'
-import Img2 from './img/2.jpg'
-import Img3 from './img/3.jpg'
-import Img4 from './img/4.jpg'
-import Img5 from './img/5.jpg'
-
-export const ImgList = [Img1, Img2, Img3, Img4, Img5]
+export const ImgList = [
+  'https://hxhxmyp.oss-cn-beijing.aliyuncs.com/myp/images/temp-1.jpg',
+  'https://hxhxmyp.oss-cn-beijing.aliyuncs.com/myp/images/temp-2.jpg',
+  'https://hxhxmyp.oss-cn-beijing.aliyuncs.com/myp/images/temp-3.jpg',
+  'https://hxhxmyp.oss-cn-beijing.aliyuncs.com/myp/images/temp-4.jpg',
+  'https://hxhxmyp.oss-cn-beijing.aliyuncs.com/myp/images/temp-5.jpg',
+]

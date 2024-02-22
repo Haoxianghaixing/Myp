@@ -10,6 +10,8 @@ const IconList = {
   addImg: require('./addImg.svg').default,
   default: require('./addImg.svg').default,
   uploadFile: require('./uploadFile.svg').default,
+  close: require('./close.svg').default,
+  toolbox: require('./toolbox.svg').default,
 }
 
 export default function Icon(props: IconProps) {

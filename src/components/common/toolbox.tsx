@@ -87,7 +87,7 @@ export default function Toolbox(props: IToolboxProps) {
        cursor-pointer absolute top-[40px] left-[40px] flex items-center justify-center'
           onClick={() => showToolbox()}
         >
-          <Icon height={24} width={24} name='addImg' />
+          <Icon height={22} width={22} name='toolbox' />
         </div>
       </div>
     </>

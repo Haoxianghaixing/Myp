@@ -7,13 +7,14 @@ import {
   UploadProps,
   GetProp,
   Cascader,
+  message,
 } from 'antd'
 import Icon from '../common/icon'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Modal, Upload } from 'antd'
 import Image from 'next/image'
 import gsap from 'gsap'
-
+import { addRecord, getAreaSelectOptions, uploadImage } from '@/api/map'
 interface IRecordProps {
   handleClose: () => void
 }
@@ -34,55 +35,30 @@ interface Option {
   children?: Option[]
 }
 
-const options: Option[] = [
-  {
-    value: 'zhejiang',
-    label: 'Zhejiang',
-    children: [
-      {
-        value: 'hangzhou',
-        label: 'Hangzhou',
-        children: [
-          {
-            value: 'xihu',
-            label: 'West Lake',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    value: 'jiangsu',
-    label: 'Jiangsu',
-    children: [
-      {
-        value: 'nanjing',
-        label: 'Nanjing',
-        children: [
-          {
-            value: 'zhonghuamen',
-            label: 'Zhong Hua Men',
-          },
-        ],
-      },
-    ],
-  },
-]
-
 export default function Record(props: IRecordProps) {
   const { handleClose } = props
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
   const [previewTitle, setPreviewTitle] = useState('')
   const [fileList, setFileList] = useState<UploadFile[]>([])
-  const [uploadParams, setUploadParams] = useState<{}>({})
+  const [options, setOptions] = useState<Option[]>([])
+
+  const fileMapRef = useRef(new Map<string, string>())
+
+  const [uploadParams, setUploadParams] = useState<{
+    areaId: string
+    takeDate?: string
+    spot?: string
+  }>({
+    areaId: '',
+  })
 
   const handleChangeDate: DatePickerProps['onChange'] = (date, dateString) => {
-    console.log(date, dateString)
+    setUploadParams((prev) => ({ ...prev, takeDate: dateString as string }))
   }
 
   const handleChangePosition = (value: (number | string)[]) => {
-    console.log(value)
+    setUploadParams((prev) => ({ ...prev, areaId: value[1] as string }))
   }
 
   const handleChangeFile: UploadProps['onChange'] = ({
@@ -130,6 +106,23 @@ export default function Record(props: IRecordProps) {
     setFileList([])
   }
 
+  const handleAddRecord = () => {
+    const newFileList = fileList.map(
+      (item) => fileMapRef.current.get(item.name)!
+    )
+    addRecord(
+      uploadParams.areaId,
+      newFileList,
+      uploadParams.takeDate,
+      uploadParams.spot
+    ).then((res) => {
+      if (res.data.code === 200) {
+        message.success('添加记录成功')
+        closeRecord()
+      }
+    })
+  }
+
   useEffect(() => {
     const container = containerRef.current
 
@@ -138,6 +131,26 @@ export default function Record(props: IRecordProps) {
       scale: 1,
       ease: 'back',
     })
+
+    getAreaSelectOptions().then((res) => {
+      if (res.data.code === 200) {
+        const { data } = res.data
+        const selectOptions: Option[] = []
+        data.forEach((item) => {
+          const children = item.children.map((child) => ({
+            value: child.areaId,
+            label: child.areaName,
+          }))
+          selectOptions.push({
+            value: item.areaId,
+            label: item.areaName,
+            children,
+          })
+        })
+        setOptions(selectOptions)
+      }
+    })
+
     return () => {}
   }, [])
 
@@ -170,17 +183,27 @@ export default function Record(props: IRecordProps) {
           <div className='flex flex-col flex-1'>
             <div className='w-full rounded-lg h-64 overflow-auto shadow-md mb-6 relative py-4 pr-[14px] pl-[23px]'>
               <Upload
-                // action='https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188'
                 listType='picture-card'
                 fileList={fileList}
                 onPreview={handlePreview}
                 onChange={handleChangeFile}
-                // data={(file) => {
-                //   return {
-                //     name: file.name,
-                //     id: '123',
-                //   }
-                // }}
+                customRequest={(params) => {
+                  const originFileName = (params.file as File).name
+                  const formData = new FormData()
+                  formData.append('file', params.file as Blob)
+                  uploadImage(formData, (ev: any) => {
+                    const percent = (ev.loaded / ev.total) * 100
+                    params.onProgress!({ percent })
+                  }).then((res) => {
+                    console.log(res)
+                    if (res.data.code === 200) {
+                      const fileName = res.data.fileName!
+                      fileMapRef.current.set(originFileName!, fileName)
+                      console.log(fileMapRef.current)
+                      params.onSuccess!(res)
+                    }
+                  })
+                }}
               >
                 {fileList.length >= 8 ? null : uploadButton}
               </Upload>
@@ -202,13 +225,22 @@ export default function Record(props: IRecordProps) {
                   type='text'
                   className='w-full h-full text-input rounded-lg text-xs'
                   placeholder='具体景点（可选）'
+                  onChange={(e) =>
+                    setUploadParams((prev) => ({
+                      ...prev,
+                      spot: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <DatePicker onChange={handleChangeDate} />
             </div>
           </div>
           <div className='flex flex-row justify-end w-full gap-4'>
-            <button className='rounded-lg py-1 px-2 border bg-white '>
+            <button
+              className='rounded-lg py-1 px-2 border bg-white '
+              onClick={() => handleAddRecord()}
+            >
               确认
             </button>
             <button

@@ -26,7 +26,7 @@ jobs:
             ./* => /projectTest/Myp
           last_ssh: |
             cd /projectTest/Myp
-            docker stop Myp
-            docker rm Myp
-            docker build -t next-new .
-            docker run -d -p 3000:3000 --name Myp next-new
+            docker stop frontend
+            docker rm frontend
+            docker build -t myp-frontend .
+            docker run -d -p 3000:3000 --name frontend myp-frontend

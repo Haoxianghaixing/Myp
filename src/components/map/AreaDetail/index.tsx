@@ -45,7 +45,7 @@ export default function AreaDetail(props: IAreaDetailProps) {
           close()
         }}
       >
-        <Icon width={20} height={20} />
+        <Icon width={24} height={24} name='close' />
       </div>
     </div>
   )

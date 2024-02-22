@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-center bg-[#F9F9FA]'>
@@ -6,6 +8,9 @@ export default function Home() {
         Welcome to your new project. This is a great place to start building
         your app.
       </p>
+      <Link href='/map/00' className='mt-10 text-2xl text-[#1677b3] underline'>
+        Go to Map
+      </Link>
     </main>
   )
 }
