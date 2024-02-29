@@ -15,8 +15,10 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        // destination: 'http://101.200.238.139:8080/api/:path*',
-        destination: 'http://localhost:8080/api/:path*', // 本地开发
+        destination:
+          process.env.BACKEND_MODE === 'prod'
+            ? 'http://101.200.238.139:8080/api/:path*'
+            : 'http://localhost:8080/api/:path*', // 本地开发
       },
     ]
   },
