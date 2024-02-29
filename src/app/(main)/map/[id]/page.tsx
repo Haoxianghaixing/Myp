@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { IArea, IMapJson } from '@/types/map'
+import { IMapJson } from '@/types/map'
 import Toolbox, { IToolboxItem } from '@/components/common/toolbox'
 import * as PIXI from 'pixi.js'
-import { getMapParams } from '@/utils'
+import { getAreaHotColor, getHotMapByAreaId, getMapParams } from '@/utils'
 import gsap from 'gsap'
 import useFleetingMessage from '@/hooks/useFleetingMessage'
 import AreaDetail from '@/components/map/AreaDetail'
@@ -12,33 +12,34 @@ import MapCanvas from '@/components/map/MapCanvas'
 import Record from '@/components/map/Record'
 import { useRouter } from 'next/navigation'
 import { getMapGeoDataById } from '@/api/map'
-
+import useHotMap from '@/hooks/useHotMap'
 const MAX_WIDTH = 1000
 const MAX_HEIGHT = 600
 
 export default function Page({ params }: { params: { id: string } }) {
   const areaId = params.id
+  const [isLoaded, setIsLoaded] = useState(false)
   const [mapParams, setMapParams] = useState({
     width: 0,
     height: 0,
     corner: { longitude: 0, latitude: 0 },
   })
   const mapJsonRef = useRef<IMapJson[] | null>(null)
-  const [selectedArea, setSelectedArea] = useState<IArea | null>(null)
-  const selectedAreaRef = useRef<IArea | null>(null)
+  const [selectedAreaId, setSelectedAreaId] = useState<string>('')
   const [stageSize, setStageSize] = useState({
     width: MAX_WIDTH,
     height: MAX_HEIGHT,
   })
   const router = useRouter()
-
-  const [isLoaded, setIsLoaded] = useState(false)
+  // 显示控制
   const [detailVisible, setDetailVisible] = useState(false)
+  const [recordVisible, setRecordVisible] = useState(false)
   const [showMessage, messageContainer] = useFleetingMessage({
     position: 'center',
   })
 
-  const [recordVisible, setRecordVisible] = useState(false)
+  const [mapMode, setMapMode] = useState<'normal' | 'hotMap'>('normal')
+  const hotMap = useHotMap()
 
   const drawMap = useCallback(
     (g: PIXI.Graphics) => {
@@ -55,8 +56,15 @@ export default function Page({ params }: { params: { id: string } }) {
       g.lineStyle(2, 0xdee1e6)
       mapJsonRef.current!.forEach((area: IMapJson) => {
         const p = new PIXI.Graphics()
+        if (mapMode === 'hotMap') {
+          const areaId = area.properties.id
+          const hotData = hotMap ? getHotMapByAreaId(areaId, hotMap) : 0
+          const color = getAreaHotColor(hotData / 10)
+          p.beginFill(color)
+        } else {
+          p.beginFill('0xffffff')
+        }
         p.lineStyle(1, 0xdee1e6)
-        p.beginFill('0xffffff')
         p.eventMode = 'static'
         p.cursor = 'pointer'
         area.geometry.coordinates.forEach((item) => {
@@ -106,26 +114,16 @@ export default function Page({ params }: { params: { id: string } }) {
               // 双击事件处理
               lastClickTime = 0
               clearTimeout(timeoutId!)
-              if (area.properties.childNum) {
+              if (area.properties.childNum && area.properties.id.length === 2) {
                 router.push('/map/' + area.properties.id)
               }
-              setIsLoaded(false)
             }
           } else {
             lastClickTime = now
             timeoutId = setTimeout(() => {
               // 单击事件处理
               lastClickTime = 0
-              if (area.properties.name !== selectedAreaRef.current?.name) {
-                setSelectedArea({
-                  id: area.properties.id,
-                  name: area.properties.name,
-                })
-                selectedAreaRef.current = {
-                  id: area.properties.id,
-                  name: area.properties.name,
-                }
-              }
+              setSelectedAreaId(area.properties.id)
               setDetailVisible(true)
             }, 300)
           }
@@ -145,7 +143,7 @@ export default function Page({ params }: { params: { id: string } }) {
         )
       })
     },
-    [isLoaded]
+    [isLoaded, mapMode]
   )
 
   const toolBoxItems: IToolboxItem[] = [
@@ -153,6 +151,7 @@ export default function Page({ params }: { params: { id: string } }) {
       iconName: 'addImg',
       transformOrigin: '100% 100%',
       uniqueStyle: 'rounded-tl-[120px]',
+      needAuth: true,
       actions: () => {
         setRecordVisible(true)
       },
@@ -161,7 +160,10 @@ export default function Page({ params }: { params: { id: string } }) {
       iconName: 'addImg',
       transformOrigin: '0% 100%',
       uniqueStyle: 'rounded-tr-[120px]',
-      actions: () => {},
+      needAuth: true,
+      actions: () => {
+        setMapMode('hotMap')
+      },
     },
     {
       iconName: 'addImg',
@@ -178,8 +180,6 @@ export default function Page({ params }: { params: { id: string } }) {
   ]
 
   useEffect(() => {
-    setIsLoaded(false)
-
     getMapGeoDataById(areaId).then((res) => {
       const body = res.data
       const data = JSON.parse(body.data)
@@ -207,15 +207,29 @@ export default function Page({ params }: { params: { id: string } }) {
   }, [])
 
   return (
-    <div className='w-full flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-[#1677b3] to-[#c3d7df] relative'>
+    <div className='w-full flex-1 flex flex-col items-center justify-center relative'>
       <div className='w-[1000px] h-[600px] flex items-center justify-center'>
         <MapCanvas drawMap={drawMap} stageSize={stageSize} />
       </div>
+      {mapMode === 'hotMap' && (
+        <div className='fixed left-20 bottom-10 h-44'>
+          <div className='absolute w-8 h-full bg-gradient-to-b from-[#7D0A0A] to-[#f9f7f7]'></div>
+          <div className='absolute top-[1.5rem] left-[40px] text-white font-bold text-center'>
+            区域图片数
+          </div>
+          <div className='absolute bottom-0 left-[40px] border-b-2 text-white font-bold'>
+            0
+          </div>
+          <div className='absolute top-0 left-[40px] border-b-2 text-white font-bold'>
+            100
+          </div>
+        </div>
+      )}
       {messageContainer}
       {recordVisible && <Record handleClose={() => setRecordVisible(false)} />}
       {detailVisible && (
         <AreaDetail
-          selectedArea={selectedArea}
+          areaId={selectedAreaId}
           handleClose={() => setDetailVisible(false)}
         />
       )}

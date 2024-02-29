@@ -18,9 +18,6 @@ export default React.memo(function MapCanvas(props: IMapCanvasProps) {
       options={{
         backgroundAlpha: 0,
       }}
-      onMount={(app) => {
-        // globalThis.__PIXI_APP__ = app
-      }}
     >
       <Graphics draw={drawMap} />
     </Stage>

@@ -156,7 +156,7 @@ export default function Record(props: IRecordProps) {
 
   return (
     <>
-      <div className=' z-20 fixed w-screen h-screen bg-[rgba(0,0,0,0.5)] pointer-events-none flex justify-center items-center'>
+      <div className=' z-20 fixed w-screen h-screen bg-[rgba(0,0,0,0.5)] pointer-events-none flex justify-center items-center top-0'>
         <div
           className={
             'fixed pointer-events-auto scale-0 flex flex-col h-[500px] w-[400px] rounded-lg left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 shadow-lg overflow-hidden p-4 bg-white'

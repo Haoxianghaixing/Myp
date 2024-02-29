@@ -4,11 +4,13 @@ import { Modal } from 'antd'
 import gsap from 'gsap'
 import { IPicture } from '@/types/map'
 import { ossPath } from '@/api/oss'
+import Link from 'next/link'
 export default function Carousel({ imgList }: { imgList: IPicture[] }) {
   const [centerImgIdx, setCenterImgIdx] = useState(1)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewImage, setPreviewImage] = useState<IPicture>({
     fileName: '',
+    userId: 0,
     areaId: '',
     userName: '',
   })
@@ -103,7 +105,10 @@ export default function Carousel({ imgList }: { imgList: IPicture[] }) {
         <div className='flex flex-row justify-end gap-2 font-bold'>
           {previewImage.userName && (
             <div className='bg-white p-1 rounded-lg'>
-              by: {previewImage.userName}
+              by: &nbsp;
+              <Link href={`/user/${previewImage.userId}`}>
+                {previewImage.userName}
+              </Link>
             </div>
           )}
           {previewImage.takeDate && (

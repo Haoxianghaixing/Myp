@@ -29,6 +29,7 @@ export interface AreaDetail {
 export interface IPicture {
   fileName: string
   areaId: string
+  userId: number
   userName: string
   // 上传日期
   uploadDate?: string
@@ -36,4 +37,15 @@ export interface IPicture {
   takeDate?: string
   // 拍摄地点
   spot?: string
+}
+
+export interface IHotMap {
+  [key: string]: {
+    count: number
+    children: {
+      [key: string]: {
+        count: number
+      }
+    }
+  }
 }

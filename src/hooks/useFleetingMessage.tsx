@@ -66,6 +66,6 @@ export default function useFleetingMessage(
       }}
       ref={containerRef}
       key={'fleeting-message-container'}
-    ></div>,
+    />,
   ]
 }

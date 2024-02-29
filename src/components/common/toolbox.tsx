@@ -3,12 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from './icon'
 import gsap from 'gsap'
+import { useUserStore } from '@/store/user'
+import { message } from 'antd'
 
 export interface IToolboxItem {
   iconName: string
   transformOrigin: string
   actions: () => void
   uniqueStyle?: string
+  needAuth?: boolean
 }
 
 interface IToolboxProps {
@@ -18,6 +21,8 @@ interface IToolboxProps {
 export default function Toolbox(props: IToolboxProps) {
   const { items } = props
   const [toolboxVisible, setToolboxVisible] = useState<boolean>(false)
+  const { isLogin } = useUserStore()
+  const isUserLogin = isLogin()
 
   const showToolbox = () => {
     if (toolboxVisible) {
@@ -76,7 +81,13 @@ export default function Toolbox(props: IToolboxProps) {
               onMouseEnter={(e) => handleHoverItem(e, item)}
               onMouseLeave={(e) => handleLeaveItem(e, item)}
               className={`toolbox-item bg-white cursor-pointer scale-0 w-[60px] h-[60px] flex items-center justify-center border-solid border ${item.uniqueStyle}`}
-              onClick={() => item.actions()}
+              onClick={() => {
+                if (item.needAuth && !isUserLogin) {
+                  message.warning('登录后可使用')
+                } else {
+                  item.actions()
+                }
+              }}
             >
               <Icon height={20} width={20} name={item.iconName} />
             </div>

@@ -1,1 +1,1 @@
-export const ossPath = 'https://hxhxmyp.oss-cn-beijing.aliyuncs.com/'
+export const ossPath = 'http://101.200.238.139/oss/'

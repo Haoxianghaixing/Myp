@@ -5,12 +5,11 @@ import gsap from 'gsap'
 import Icon from '@/components/common/icon'
 
 interface IAreaDetailProps {
-  selectedArea: IArea | null
+  areaId: string
   handleClose: () => void
 }
 
-export default function AreaDetail(props: IAreaDetailProps) {
-  const { selectedArea, handleClose } = props
+export default function AreaDetail({ areaId, handleClose }: IAreaDetailProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const close = () => {
@@ -38,7 +37,7 @@ export default function AreaDetail(props: IAreaDetailProps) {
         'fixed h-[600px] w-[400px] rounded-lg right-[-400px]  top-1/2 -translate-y-1/2 shadow-lg overflow-hidden'
       }
     >
-      <Detail area={selectedArea} />
+      <Detail areaId={areaId} />
       <div
         className='absolute right-2 top-2 cursor-pointer'
         onClick={() => {

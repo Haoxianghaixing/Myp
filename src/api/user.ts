@@ -4,11 +4,7 @@ import axios from 'axios'
 export const getUserInfo = () =>
   axios.get<{
     code: number
-    data: {
-      id: number
-      name: string
-      email: string
-    }
+    data: IUserInfo
   }>(`/api/user/getUserInfo`)
 
 export const login = (email: string, password: string) =>

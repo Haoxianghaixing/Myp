@@ -1,4 +1,4 @@
-import { AreaDetail, IPicture } from '@/types/map'
+import { AreaDetail, IHotMap, IPicture } from '@/types/map'
 import axios from 'axios'
 
 export const getMapGeoDataById = (areaId: string) =>
@@ -55,3 +55,10 @@ export const getAreaSelectOptions = () =>
       }[]
     }[]
   }>(`/api/map/getAreaList`)
+
+export const getUserHotMap = () =>
+  axios.get<{
+    code: number
+    message: string
+    data: IHotMap | null
+  }>(`/api/map/getUserHotMap`)
