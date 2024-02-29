@@ -6,7 +6,8 @@ import { IPicture } from '@/types/map'
 import { ossPath } from '@/api/oss'
 import Link from 'next/link'
 export default function Carousel({ imgList }: { imgList: IPicture[] }) {
-  const [centerImgIdx, setCenterImgIdx] = useState(1)
+  // const centerImgIdxRef = useRef(0)
+  const [centerImgIdx, setCenterImgIdx] = useState(0)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewImage, setPreviewImage] = useState<IPicture>({
     fileName: '',
@@ -20,72 +21,74 @@ export default function Carousel({ imgList }: { imgList: IPicture[] }) {
   }
 
   const imgListContainerRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // imgWidth + span
+  // (rootRef.current.clientWidth - imgWidth) / 2
 
   const handleClickImg = (index: number) => {
-    const dIdx = (centerImgIdx - index + imgList.length) % imgList.length
+    // const dIdx = index - centerImgIdxRef.current
+    const dIdx = index - centerImgIdx
     const container = imgListContainerRef.current
-    setCenterImgIdx(index)
+    const imgWidth = 200
+    const span = 8
     if (container) {
-      if (dIdx) {
-        gsap.from(container, {
-          duration: 0.5,
-          x: ((container.clientWidth - 16) / 3 + 8) * (dIdx === 1 ? -1 : 1),
-          ease: 'linear',
-        })
-      } else {
+      if (!dIdx) {
         setPreviewImage(imgList[index])
         setPreviewOpen(true)
+      } else {
+        gsap.to(container, {
+          duration: 0.5,
+          x:
+            index === 0
+              ? 0
+              : index === imgList.length - 1
+              ? -(container.clientWidth - rootRef.current!.clientWidth)
+              : `+=${
+                  (index === 1 && dIdx === 1) ||
+                  (index === imgList.length - 2 && dIdx === -1)
+                    ? (imgWidth +
+                        span -
+                        (rootRef.current!.clientWidth - imgWidth) / 2) *
+                      -dIdx
+                    : (imgWidth + span) * -dIdx
+                }`,
+          ease: 'linear',
+          onComplete: () => {
+            setCenterImgIdx(index)
+          },
+        })
       }
     }
   }
 
   return (
     <>
-      {imgList.length > 3 ? (
+      <div ref={rootRef} className='w-full h-full overflow-hidden'>
         <div
           ref={imgListContainerRef}
-          className='w-[180%] h-full flex flex-row items-center flex-shrink-0 gap-2'
+          className='flex flex-row h-full w-max gap-2'
         >
-          {[
-            imgList[(centerImgIdx + imgList.length - 1) % imgList.length],
-            imgList[centerImgIdx],
-            imgList[(centerImgIdx + 1) % imgList.length],
-          ].map((img, index) => (
+          {imgList.map((img, index) => (
             <div
               key={`img-${index}`}
-              className=' flex-1 cursor-pointer h-full rounded-lg bg-gray-300 relative overflow-hidden'
+              className='w-[200px] cursor-pointer h-full rounded-lg bg-gray-300 relative overflow-hidden'
               onClick={() => {
-                handleClickImg(
-                  (centerImgIdx + index - 1 + imgList.length) % imgList.length
-                )
+                handleClickImg(index)
               }}
             >
-              <Image
-                loader={() => ossPath + img.fileName}
-                src={ossPath + img.fileName}
-                fill
-                alt=''
-              />
+              {Math.abs(index - centerImgIdx) < 3 && (
+                <Image
+                  loader={() => ossPath + img.fileName}
+                  src={ossPath + img.fileName}
+                  fill
+                  alt=''
+                />
+              )}
             </div>
           ))}
         </div>
-      ) : (
-        <div
-          ref={imgListContainerRef}
-          className='w-full cursor-pointer h-full flex flex-row items-center flex-shrink-0 gap-2 relative'
-          onClick={() => {
-            handleClickImg(0)
-          }}
-        >
-          <Image
-            loader={() => ossPath + imgList[0].fileName}
-            src={ossPath + imgList[0].fileName}
-            fill
-            className='object-contain rounded-lg'
-            alt=''
-          />
-        </div>
-      )}
+      </div>
       <Modal
         open={previewOpen}
         footer={null}

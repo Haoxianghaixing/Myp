@@ -6,17 +6,19 @@ ARG BACKEND_MODE=prod
 
 ENV BACKEND_MODE=${BACKEND_MODE}
 
-RUN npm install -g pnpm
-COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY pnpm-lock.yaml ./
 RUN pnpm config set registry https://registry.npmmirror.com/
-RUN pnpm install
+RUN pnpm fetch --prod 
+
 COPY . .
+
+RUN pnpm install --offline -r --prod
+
 RUN npx cross-env BACKEND_MODE=$BACKEND_MODE pnpm run build
 
 FROM node:18-alpine AS runner
 WORKDIR /app
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
-COPY --from=builder /app/next.config.mjs ./next.config.mjs
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
